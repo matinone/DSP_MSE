@@ -8,7 +8,7 @@ entity tb_alu is
 end entity tb_alu;
 
 -- arquitetura
-architecture rtl of tb_alu is
+architecture testbench of tb_alu is
 
     component alu is
         generic (
@@ -55,4 +55,4 @@ begin
                     "10" after 50 ns,
                     "11" after 75 ns;
 
-end architecture rtl;
+end architecture testbench;

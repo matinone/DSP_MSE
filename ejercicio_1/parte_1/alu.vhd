@@ -36,8 +36,9 @@ begin
                 o_output <= i_input_a or i_input_b;
             when "11" =>
                 o_output <= i_input_a and i_input_b;
-             when others =>
-                 o_output <= std_logic_vector(to_unsigned(0, o_output'LENGTH));
+            when others =>
+                o_output <= std_logic_vector(to_unsigned(0, o_output'LENGTH));
+                -- o_output <= (others => '0');
         end case;
     end process comb_alu_process;
 
