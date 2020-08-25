@@ -32,7 +32,7 @@ begin
 
     dut : ripple_carry_adder
     generic map (
-        N => 4
+        N => tb_N
     )
     port map(
         i_input_a => tb_input_a,
