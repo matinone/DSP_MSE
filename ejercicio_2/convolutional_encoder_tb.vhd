@@ -58,6 +58,16 @@ architecture testbench of convolutional_encoder_tb is
         end loop;
     end procedure generate_delay;
 
+
+    type test_vector_array is array (natural range <>) of integer;
+    constant test_vectors : test_vector_array := (
+        (5    ),
+        (4100 ),
+        (44970),
+        (4660 ),
+        (30802)
+    );
+
 begin
     -----------------------------------------------------------
     -- Clocks and Reset
@@ -84,18 +94,15 @@ begin
         variable i      : integer;
         variable temp   : std_logic_vector(N_INPUT-1 downto 0);
     begin
-        --Valores de reset del bus de las señales
-
         i_slave_axis_tdata  <= (others => '0');
         i_slave_axis_tvalid <= '0';
         wait until i_rst = '1';
         generate_delay(i_clk, 10);
-        loop_generate_data : for i in 0 to 15 loop
-                --temp  := std_logic_vector(to_unsigned(i,temp'LENGTH));
-                -- temp  := std_logic_vector(to_unsigned(54545, N_INPUT));
-                i_slave_axis_tdata  <= std_logic_vector(to_unsigned(54545, N_INPUT));
+        -- loop_generate_data : for i in 0 to 15 loop
+        for i in test_vectors'range loop
+                i_slave_axis_tdata  <= std_logic_vector(to_unsigned(test_vectors(i), N_INPUT));
                 i_slave_axis_tvalid <= '1';
-                --Esperemos a que en un cambio de reloj el t_ready este en '1'
+
                 wait until (rising_edge(i_clk) and o_slave_axis_tready = '1');
                 i_slave_axis_tvalid <= '0';
                 generate_delay(i_clk, 9);
@@ -111,7 +118,7 @@ begin
         i_master_axis_tready <= '1';
         process_data_valid : while true loop
             wait until o_master_axis_tvalid = '1';
-            report "Valor recibido:0x" & to_hstring(o_master_axis_tdata);
+            report "Received value: 0x" & to_hstring(o_master_axis_tdata);
         end loop; -- process_data_valid
         wait;
     end process print_data;
