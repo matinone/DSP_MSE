@@ -29,6 +29,14 @@ architecture testbench of difference_equation_tb is
         );
     end component;
 
+    -- absolute paths
+--    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_const.txt";
+    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_sin.txt";
+    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_out.txt";
+    constant values_to_save : integer := 200;
+    -- pointers for the files
+    file r_fptr, w_fptr : text;
+
     constant N_INPUT  : integer := 8;
     constant N_OUTPUT : integer := 16;
 
@@ -77,7 +85,12 @@ begin
     -- Testbench Stimulus
     -----------------------------------------------------------
     generate_stimulus : process is
+        variable fstatus    : file_open_status;
+        variable file_line  : line;
+        variable input_val  : integer;
     begin
+        file_open(fstatus, r_fptr, in_file, read_mode);
+
         -- just accept all the data
         i_master_axis_tready <= '1';
         -- reset vaues for the input signals
@@ -85,24 +98,23 @@ begin
         i_slave_axis_tvalid <= '0';
         wait until i_rst = '1';
         generate_delay(i_clk, 10);
-        
-        -- --Primer valor de entrda. Respuesta impulsiva x(n) = '1'
-        -- i_slave_axis_tdata  <= std_logic_vector(to_unsigned(2, i_slave_axis_tdata'LENGTH));
-        -- i_slave_axis_tvalid <= '1';
-        -- --Esperemos a que en un cambio de reloj el t_ready este en '1'
-        -- wait until (rising_edge(i_clk) and o_slave_axis_tready = '1');
-        -- i_slave_axis_tvalid <= '0';
-        -- i_slave_axis_tdata  <= x"00";
-        -- generate_delay(i_clk, 20);
 
-        loop_generate_data : for i in 0 to 30 loop
-                i_slave_axis_tdata  <= std_logic_vector(to_unsigned(15, N_INPUT));
-                i_slave_axis_tvalid <= '1';
+        loop_file : while not endfile(r_fptr) loop
+            readline(r_fptr, file_line);
+            read(file_line, input_val);
+            report "Input value read from file: " & integer'image(input_val);
 
-                wait until (rising_edge(i_clk) and o_slave_axis_tready = '1');
-                i_slave_axis_tvalid <= '0';
-                generate_delay(i_clk, 9);
+            i_slave_axis_tdata  <= std_logic_vector(to_signed(input_val, N_INPUT));
+            i_slave_axis_tvalid <= '1';
+
+            wait until (rising_edge(i_clk) and o_slave_axis_tready = '1');
+            i_slave_axis_tvalid <= '0';
+            generate_delay(i_clk, 20);
+
         end loop;
+
+        report "Done reading input file";
+        file_close(r_fptr);
 
         wait;
 
