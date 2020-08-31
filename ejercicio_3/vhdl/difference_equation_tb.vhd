@@ -7,7 +7,7 @@ use ieee.std_logic_textio.all;
 entity difference_equation_tb is
 end entity difference_equation_tb;
 
-architecture testbench of difference_equation_tb is
+architecture testbench of difference_equation_tb is 
 
     component difference_equation is
         generic (
@@ -119,6 +119,33 @@ begin
         wait;
 
     end process; -- generate_stimulus
+
+
+    p_write_file : process is
+        variable fstatus    : file_open_status;
+        variable file_line  : line;
+        variable v_int      : integer;
+        variable v_std_lv   : std_logic_vector((o_master_axis_tdata'LENGTH - 1) downto 0);
+    begin
+        file_open(fstatus, w_fptr, out_file, write_mode);
+        wait until (i_rst = '1');
+
+        write_file : for i in 0 to values_to_save loop
+            wait until (o_master_axis_tvalid = '1');
+            v_int    := to_integer(signed(o_master_axis_tdata));
+            v_std_lv := o_master_axis_tdata;
+            write(file_line, v_int);
+            write(file_line, v_std_lv, right, 40);
+            writeline(w_fptr, file_line);
+            report "Written value: " & integer'image(v_int);
+        end loop;
+
+        report "Done writing output file";
+        file_close(w_fptr);
+
+        wait;
+
+    end process;
 
     -----------------------------------------------------------
     -- Entity Under Test
