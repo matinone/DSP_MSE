@@ -2,27 +2,38 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_sin_signal(A, N, fs, f=None):
-    if f is None:
-        f = 0.01    # normalized frequency to 1 Hz by default
-    time = np.linspace(0, N*(1.0/fs), N, endpoint=False)
-    sin_values = A * np.sin(2*np.pi * (f/fs) * time)
+N = 200
+fs = 1.0
+time = np.linspace(0, N*(1.0/fs), N, endpoint=False)
 
-    return time, sin_values
+for f in ["fny", "fny_2"]:
 
-[time, sin_values] = generate_sin_signal(A=0.25, N=199, fs=1.0, f=0.01)
+    sim_output_file    = "data_out_{}.txt".format(f)
+    python_output_file = "data_out_{}_python.txt".format(f)
 
-output_simulation_file = "data_out.txt"
-output_fp = np.array([],dtype = np.int64)
-with open(output_simulation_file) as csvfile:
-    reader = csv.reader(csvfile, delimiter=' ')
-    for row in reader:
-        output_fp = np.append(output_fp,np.array(row[0],dtype = np.int64))
+    output_sim_fp = np.array([], dtype=np.int64)
+    output_py_float = np.array([], dtype=float)
 
-output_float = (output_fp / 2**7)
-plt.plot(time, sin_values, 'ko')
-plt.plot(time, sin_values, 'k')
-plt.plot(time[:len(time)-5], output_float[5:],'ro')
-plt.plot(time[:len(time)-5], output_float[5:],'r')
-plt.grid()
-plt.show()
+    with open(sim_output_file) as csvfile:
+        reader = csv.reader(csvfile, delimiter=' ')
+        for row in reader:
+            output_sim_fp = np.append(output_sim_fp, np.array(row[0], dtype=np.int64))
+    output_sim_float = (output_sim_fp / 2**7)
+
+    with open(python_output_file) as py_file:
+        for line in py_file:
+            output_py_float = np.append(output_py_float, np.array(float(line), dtype=float))
+
+
+    plt.figure(figsize=(20, 10))
+    plt.plot(time, output_py_float, 'ko', label="Python")
+    plt.plot(time, output_py_float, 'k')
+    plt.plot(time[1:], output_sim_float,'r+', label="Simulation")
+    plt.plot(time[1:], output_sim_float,'r')
+    plt.title("Output for f = {}".format(f))
+    plt.xlabel("Time")
+    plt.ylabel("Amplitude")
+    plt.legend()
+    plt.grid()
+    # plt.show()
+    plt.savefig("output_comparison_{}.png".format(f))

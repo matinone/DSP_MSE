@@ -30,9 +30,10 @@ architecture testbench of difference_equation_tb is
     end component;
 
     -- absolute paths
---    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_const.txt";
-    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_sin.txt";
-    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_out.txt";
+    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_fny_2.txt";
+    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_out_fny_2.txt";
+   
+
     constant values_to_save : integer := 200;
     -- pointers for the files
     file r_fptr, w_fptr : text;
@@ -119,8 +120,7 @@ begin
         wait;
 
     end process; -- generate_stimulus
-
-
+    
     p_write_file : process is
         variable fstatus    : file_open_status;
         variable file_line  : line;
@@ -129,22 +129,19 @@ begin
     begin
         file_open(fstatus, w_fptr, out_file, write_mode);
         wait until (i_rst = '1');
-
+        
         write_file : for i in 0 to values_to_save loop
             wait until (o_master_axis_tvalid = '1');
-            v_int    := to_integer(signed(o_master_axis_tdata));
+            v_int    := to_integer(signed(o_master_axis_tdata));    
             v_std_lv := o_master_axis_tdata;
             write(file_line, v_int);
             write(file_line, v_std_lv, right, 40);
             writeline(w_fptr, file_line);
             report "Written value: " & integer'image(v_int);
         end loop;
-
         report "Done writing output file";
         file_close(w_fptr);
-
         wait;
-
     end process;
 
     -----------------------------------------------------------
