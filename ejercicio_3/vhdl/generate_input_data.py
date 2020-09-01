@@ -36,7 +36,7 @@ test_frequency = {"fny": fs / 2, "fny_2": fs / 4}
 
 const_input = DeFixedInt(NBI_INPUT-1, NBF_INPUT, A, roundMode='trunc')
 print("Generating DC input")
-with open("data_in_dc.txt", "w") as input_file:
+with open("data/data_in_dc.txt", "w") as input_file:
     for _ in range(N):
         input_file.write("{}\n".format(const_input.value))
 
@@ -50,7 +50,7 @@ for f_str in test_frequency.keys():
                     DeFixedInt(NBI_INPUT-1, NBF_INPUT, value, roundMode='trunc').fValue) for value in input_values]
 
     # generate file for the testbench
-    with open("data_in_{}.txt".format(f_str), "w") as input_file:
+    with open("data/data_in_{}.txt".format(f_str), "w") as input_file:
         for value in fixed_array:
             input_file.write("{}\n".format(value[0]))
 

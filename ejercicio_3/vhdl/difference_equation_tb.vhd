@@ -30,8 +30,8 @@ architecture testbench of difference_equation_tb is
     end component;
 
     -- absolute paths
-    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_in_fny_2.txt";
-    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data_out_fny_2.txt";
+    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data/data_in_fny_2.txt";
+    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_3/vhdl/data/data_out_fny_2.txt";
    
 
     constant values_to_save : integer := 200;

@@ -8,8 +8,8 @@ time = np.linspace(0, N*(1.0/fs), N, endpoint=False)
 
 for f in ["fny", "fny_2"]:
 
-    sim_output_file    = "data_out_{}.txt".format(f)
-    python_output_file = "data_out_{}_python.txt".format(f)
+    sim_output_file    = "data/data_out_{}.txt".format(f)
+    python_output_file = "data/data_out_{}_python.txt".format(f)
 
     output_sim_fp = np.array([], dtype=np.int64)
     output_py_float = np.array([], dtype=float)
@@ -36,4 +36,4 @@ for f in ["fny", "fny_2"]:
     plt.legend()
     plt.grid()
     # plt.show()
-    plt.savefig("output_comparison_{}.png".format(f))
+    plt.savefig("images/output_comparison_{}.png".format(f))
