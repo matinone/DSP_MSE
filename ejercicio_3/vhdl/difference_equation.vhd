@@ -128,14 +128,14 @@ begin
         temp_sum_out := temp_sum_out + shift_right(signed(output_vector_reg(1)(max_res_out-1 downto 0)), 2); -- number * 0.25 --> 2 right shift
         temp_sum_out := temp_sum_out + resize(temp_sum_in, max_res_out-1);             -- resize to the same bits as the output
 
-        -- saturate the output to 11 bits only
+        -- truncate the output to 11 bits only
         -- MSB = '0' --> positive (sature to max value)
        if ((temp_sum_out(max_res_out-1) = '0') and (or temp_sum_out(max_res_out-1 downto N_OUTPUT_USED-1) = '1')) then
            current_sum <= std_logic_vector(to_signed(MAX_OV, current_sum'LENGTH));
        -- MSB = '1' --> negative (saturate to min value)
        elsif (temp_sum_out(max_res_out-1) = '1' and (and temp_sum_out(max_res_out-1 downto N_OUTPUT_USED-1) = '0')) then
            current_sum <= std_logic_vector(to_signed(MIN_OV, current_sum'LENGTH));
-       -- saturate
+       -- truncate
        else
            current_sum <= std_logic_vector(temp_sum_out(N_OUTPUT_USED-1 downto 0));
        end if;

@@ -59,11 +59,11 @@ for f_str in test_frequency.keys():
     # generate expected output data
     expected_output = signal.lfilter(b=b_fp_float, a=a_fp_float, x=[value[1] for value in fixed_array])
 
-    fig = plt.figure(1, figsize=(20,8))
-    plt.plot(time, expected_output, 'ko')
-    plt.plot(time, expected_output, 'k')
-    plt.grid()
-    plt.show()
+    # fig = plt.figure(1, figsize=(20,8))
+    # plt.plot(time, expected_output, 'ko')
+    # plt.plot(time, expected_output, 'k')
+    # plt.grid()
+    # plt.show()
 
     with open("data/data_out_{}_python.txt".format(f_str), "w") as input_file:
         for value in expected_output:
