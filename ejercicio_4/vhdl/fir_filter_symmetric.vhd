@@ -50,7 +50,6 @@ architecture rtl of fir_filter_symmetric is
     signal input_vector_reg : input_vector_type(0 to M);  -- x(n),x(n-1),x(n-2) ... x(n-(M-1))
 
     -- vector for filter coefficients (values generated in Python and converted to fixed point Q1.15)
-    -- conviene que esto sea signed en vez de std_logic_vector?
     type coef_vector_type is array (integer range <>) of signed(N_COEF-1 downto 0);
     constant coef_vector_reg : coef_vector_type(0 to M) := (
         (to_signed(-1604, N_COEF)),     -- -0.04895594
@@ -62,11 +61,11 @@ architecture rtl of fir_filter_symmetric is
         (to_signed(-1604, N_COEF))      -- -0.04895594
     );
 
-    -- vector for multiplication results (input * coef) in max resolution
+    -- vector for multiplication results (input * coef) in max resolution (Q2.30)
     type mult_vector_type is array (integer range <>) of std_logic_vector(N_INPUT+N_COEF-1 downto 0);
-    signal mult_vector_reg : mult_vector_type(0 to M);
+    signal mult_vector_reg : mult_vector_type(0 to M);  -- just to be able to see the value in the waveform
 
-    -- vector for truncated multiplication results
+    -- vector for truncated multiplication results (Q2.16)
     type trunc_vector_type is array (integer range <>) of std_logic_vector(N_TRUNC-1 downto 0);
     signal trunc_vector_reg : trunc_vector_type(0 to M/2);
 
@@ -106,8 +105,8 @@ begin
 
         variable mult_vector_var : mult_vector_type(0 to M/2);
 
-        constant MAX_OV : integer := (2**(N_TRUNC-1))-1; 
-        constant MIN_OV : integer := (-2**(N_TRUNC-1)); 
+        -- constant MAX_OV : integer := (2**(N_TRUNC-1))-1; 
+        -- constant MIN_OV : integer := (-2**(N_TRUNC-1)); 
 
     begin
         -- take advantage of the symmetric filter
@@ -119,17 +118,7 @@ begin
                 mult_vector_var(i) := std_logic_vector((signed(input_vector_reg(i)) + signed(input_vector_reg(M-i))) * coef_vector_reg(i));
             end if;
 
-            -- truncate the output to N_TRUNC bits
---            -- MSB = '0' --> positive (sature to max value)
---            if ((mult_vector_var(i)(N_INPUT+N_COEF-1) = '0') and (or mult_vector_var(i)(N_INPUT+N_COEF-1 downto N_TRUNC-1) = '1')) then
---                trunc_vector_reg(i) <= std_logic_vector(to_signed(MAX_OV, trunc_vector_reg(i)'LENGTH));
---            -- MSB = '1' --> negative (saturate to min value)
---            elsif ((mult_vector_var(i)(N_INPUT+N_COEF-1) = '1') and (and mult_vector_var(i)(N_INPUT+N_COEF-1 downto N_TRUNC-1) = '0')) then
---                trunc_vector_reg(i) <= std_logic_vector(to_signed(MIN_OV, trunc_vector_reg(i)'LENGTH));
---            -- truncate
---            else
---                trunc_vector_reg(i) <= std_logic_vector(mult_vector_var(i)( mult_vector_var(i)'LEFT downto (mult_vector_var(i)'LEFT - N_TRUNC + 1) ));
---            end if;
+            -- truncate the output to N_TRUNC bits (going from Q2.30 to Q2.16, so it will never saturate)
             trunc_vector_reg(i) <= std_logic_vector(mult_vector_var(i)( mult_vector_var(i)'LEFT downto (mult_vector_var(i)'LEFT - N_TRUNC + 1) ));
             mult_vector_reg(i) <= mult_vector_var(i);
         end loop;

@@ -9,7 +9,7 @@ end entity fir_filter_tb;
 
 architecture testbench of fir_filter_tb is 
 
-    component fir_filter_symmetric is
+    component fir_filter_symmetric_round is
         generic (
                 N_INPUT  : integer := 16;
                 N_COEF   : integer := 16;
@@ -30,8 +30,8 @@ architecture testbench of fir_filter_tb is
     end component;
 
     -- absolute paths
-    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_4/vhdl/data/data_in_fny_0p1.txt";
-    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_4/vhdl/data/data_out_fny_0p1_symmetric.txt";
+    constant in_file        : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_4/vhdl/data/data_in_fny_0p8.txt";
+    constant out_file       : string  := "/home/mbrignone/MAESTRIA/MSE/dsp/tp1_dsp_mse/ejercicio_4/vhdl/data/data_out_fny_0p8_symmetric_round.txt";
     constant values_to_save : integer := 200;
     -- pointers for the files
     file r_fptr, w_fptr     : text;
@@ -40,7 +40,6 @@ architecture testbench of fir_filter_tb is
     constant N_COEF   : integer := 16;
     constant N_TRUNC  : integer := 18;
     constant N_OUTPUT : integer := N_TRUNC+3;
---    constant N_OUTPUT : integer := N_INPUT+N_COEF+3;
 
     signal i_clk                : std_logic;
     signal i_rst                : std_logic;
@@ -148,7 +147,7 @@ begin
     -----------------------------------------------------------
     -- Entity Under Test
     -----------------------------------------------------------
-    DUT : fir_filter_symmetric
+    DUT : fir_filter_symmetric_round
         generic map (
             N_INPUT  => N_INPUT,
             N_COEF   => N_COEF,

@@ -2,12 +2,21 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
+def get_mean_squared_error(y, y_expected):
+    total_sum = 0
+    for i in range(len(y)):
+        total_sum = total_sum + (y[i] - y_expected[i]) ** 2
+    
+    return total_sum / len(y)
+
+
 N = 200
 fs = 1.0
 time = np.linspace(0, N*(1.0/fs), N, endpoint=False)
 
 # symmetric = ""
-symmetric = "_symmetric"
+# symmetric = "_symmetric"
+symmetric = "_symmetric_round"
 freq_array = ["fny_0p1", "fny_0p8"]
 for f in freq_array:
 
@@ -35,6 +44,8 @@ for f in freq_array:
         for line in py_file:
             output_py_float = np.append(output_py_float, np.array(float(line), dtype=float))
 
+    mse = get_mean_squared_error(y=output_sim_float, y_expected=output_py_float)
+    print("MSE for {} {} = {}".format(f, symmetric.replace("_s", "s"), mse))
 
     plt.figure(figsize=(20, 10))
     plt.plot(time, output_py_float, 'ko', label="Python")
@@ -43,7 +54,7 @@ for f in freq_array:
     plt.plot(time[1:], output_sim_float,'r')
     # plt.plot(time, input_sim_float, 'b*', label="Input")
     # plt.plot(time, input_sim_float, 'b')
-    plt.title("Output for f = {} {}".format(f, symmetric.replace("_", "")))
+    plt.title("Output for f = {} {}".format(f, symmetric.replace("_s", "s")))
     plt.xlabel("Time")
     plt.ylabel("Amplitude")
     plt.legend()

@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 
-entity fir_filter is
+entity fir_filter_symmetric_round is
     generic (
             -- input bits
             N_INPUT  : integer := 16;
@@ -30,7 +30,7 @@ entity fir_filter is
     );
 end entity;
 
-architecture rtl of fir_filter is
+architecture rtl of fir_filter_symmetric_round is
 
     component ffd_vector is
         generic (
@@ -61,13 +61,13 @@ architecture rtl of fir_filter is
         (to_signed(-1604, N_COEF))      -- -0.04895594
     );
 
-    -- vector for multiplication results (input * coef) in max resolution
+    -- vector for multiplication results (input * coef) in max resolution (Q2.30)
     type mult_vector_type is array (integer range <>) of std_logic_vector(N_INPUT+N_COEF-1 downto 0);
     signal mult_vector_reg : mult_vector_type(0 to M);  -- just to be able to see the value in the waveform
 
-    -- vector for truncated multiplication results
+    -- vector for truncated multiplication results (Q2.16)
     type trunc_vector_type is array (integer range <>) of std_logic_vector(N_TRUNC-1 downto 0);
-    signal trunc_vector_reg : trunc_vector_type(0 to M);
+    signal trunc_vector_reg : trunc_vector_type(0 to M/2);
 
     -- states to control the block
     type state_type is (
@@ -103,18 +103,26 @@ begin
     -- multiplicate input samples and filter coefficients
     mult_process : process(all) is
 
-        variable mult_vector_var : mult_vector_type(0 to M);
+        variable mult_vector_var : mult_vector_type(0 to M/2);
+        variable temp_val        : std_logic_vector((N_INPUT+N_COEF+1)-1 downto 0);
 
+        constant SUM_MASK : integer := 2 ** ( (N_INPUT+N_COEF) - (N_TRUNC) -1);
         -- constant MAX_OV : integer := (2**(N_TRUNC-1))-1; 
         -- constant MIN_OV : integer := (-2**(N_TRUNC-1)); 
 
     begin
+        -- take advantage of the symmetric filter
+        for i in 0 to M/2 loop
 
-        for i in 0 to M loop
-            mult_vector_var(i) := std_logic_vector(signed(input_vector_reg(i)) * coef_vector_reg(i));
+            if (i = M/2) then
+                mult_vector_var(i) := std_logic_vector(signed(input_vector_reg(i)) * coef_vector_reg(i));
+            else
+                mult_vector_var(i) := std_logic_vector((signed(input_vector_reg(i)) + signed(input_vector_reg(M-i))) * coef_vector_reg(i));
+            end if;
 
-            -- truncate the output to N_TRUNC bits
-            trunc_vector_reg(i) <= std_logic_vector(mult_vector_var(i)( mult_vector_var(i)'LEFT downto (mult_vector_var(i)'LEFT - N_TRUNC + 1) ));
+            -- round the output to N_TRUNC bits (going from Q2.30 to Q2.16, so it will never saturate)
+            temp_val := std_logic_vector(to_signed(to_integer(signed(mult_vector_var(i))) + to_integer(to_signed(SUM_MASK, mult_vector_var(i)'LENGTH)), temp_val'LENGTH));
+            trunc_vector_reg(i) <= std_logic_vector(temp_val(mult_vector_var(i)'LEFT downto (mult_vector_var(i)'LEFT - N_TRUNC + 1) ));
             mult_vector_reg(i) <= mult_vector_var(i);
         end loop;
 
