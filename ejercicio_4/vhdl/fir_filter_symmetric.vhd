@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 
-entity fir_filter is
+entity fir_filter_symmetric is
     generic (
             -- input bits
             N_INPUT  : integer := 16;
@@ -30,7 +30,7 @@ entity fir_filter is
     );
 end entity;
 
-architecture rtl of fir_filter is
+architecture rtl of fir_filter_symmetric is
 
     component ffd_vector is
         generic (
@@ -68,7 +68,7 @@ architecture rtl of fir_filter is
 
     -- vector for truncated multiplication results
     type trunc_vector_type is array (integer range <>) of std_logic_vector(N_TRUNC-1 downto 0);
-    signal trunc_vector_reg : trunc_vector_type(0 to M);
+    signal trunc_vector_reg : trunc_vector_type(0 to M/2);
 
     -- states to control the block
     type state_type is (
@@ -104,15 +104,20 @@ begin
     -- multiplicate input samples and filter coefficients
     mult_process : process(all) is
 
-        variable mult_vector_var : mult_vector_type(0 to M);
+        variable mult_vector_var : mult_vector_type(0 to M/2);
 
         constant MAX_OV : integer := (2**(N_TRUNC-1))-1; 
         constant MIN_OV : integer := (-2**(N_TRUNC-1)); 
 
     begin
+        -- take advantage of the symmetric filter
+        for i in 0 to M/2 loop
 
-        for i in 0 to M loop
-            mult_vector_var(i) := std_logic_vector(signed(input_vector_reg(i)) * coef_vector_reg(i));
+            if (i = M/2) then
+                mult_vector_var(i) := std_logic_vector(signed(input_vector_reg(i)) * coef_vector_reg(i));
+            else
+                mult_vector_var(i) := std_logic_vector((signed(input_vector_reg(i)) + signed(input_vector_reg(M-i))) * coef_vector_reg(i));
+            end if;
 
             -- truncate the output to N_TRUNC bits
 --            -- MSB = '0' --> positive (sature to max value)
